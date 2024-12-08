@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Order Validation</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toposort/2.0.2/toposort.min.js"></script>
+  <script defer src="part-01.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: rgb(14, 0, 41);
+      color: rgb(255, 250, 237);
+    }
+
+    input[type="file"] {
+      margin-bottom: 20px;
+    }
+
+    .result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Page Order Validation</h1>
+  <input type="file" id="fileInput" />
+  <div class="result" id="result"></div>
+</body>
+
+</html>
