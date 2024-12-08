@@ -1,3 +1,14 @@
+let pages = [];
+let allPages = new Set();
+let positions = {};
+let dependencies = {};
+let updateIndex = 0;
+let step = 0;
+let maxSteps = 0;
+let validUpdates = [];
+let middlePages = [];
+let sortingDone = false;
+
 document
   .getElementById("fileInput")
   .addEventListener("change", handleFile, false);
@@ -20,41 +31,109 @@ function processInput(text) {
     .slice(separatorIndex + 1)
     .map((line) => line.split(",").map(Number));
 
-  // Parse rules into a graph format
-  const dependencies = new Map();
+  dependencies = buildDependencies(rules);
+  validUpdates = updates.filter((update) => isCorrectOrder(update));
+
+  // Add all pages from updates to the set
+  updates.forEach((update) => update.forEach((page) => allPages.add(page)));
+
+  if (validUpdates.length > 0) {
+    updateIndex = 0;
+    step = 0;
+    sortingDone = false;
+    setupCanvas(validUpdates[updateIndex]);
+  } else {
+    document.getElementById("result").innerText = "No valid updates found.";
+  }
+}
+
+function buildDependencies(rules) {
+  const deps = {};
   rules.forEach((rule) => {
     const [before, after] = rule.split("|").map(Number);
-    if (!dependencies.has(after)) dependencies.set(after, new Set());
-    dependencies.get(after).add(before);
+    if (!deps[after]) deps[after] = new Set();
+    deps[after].add(before);
   });
+  return deps;
+}
 
-  function isUpdateValid(update) {
-    const position = new Map();
-    update.forEach((page, index) => position.set(page, index));
+function isCorrectOrder(update) {
+  const positions = {};
+  update.forEach((page, index) => (positions[page] = index));
 
-    for (let [after, befores] of dependencies.entries()) {
-      if (position.has(after)) {
-        for (let before of befores) {
-          if (
-            position.has(before) &&
-            position.get(before) > position.get(after)
-          ) {
-            return false;
-          }
+  for (const [after, befores] of Object.entries(dependencies)) {
+    if (positions.hasOwnProperty(after)) {
+      for (const before of befores) {
+        if (
+          positions.hasOwnProperty(before) &&
+          positions[before] > positions[after]
+        ) {
+          return false;
         }
       }
     }
-    return true;
   }
+  return true;
+}
 
-  // Check each update and find the middle page
-  const validUpdates = updates.filter(isUpdateValid);
-  const middlePages = validUpdates.map(
-    (update) => update[Math.floor(update.length / 2)]
-  );
-  const result = middlePages.reduce((acc, val) => acc + val, 0);
+function setupCanvas(update) {
+  pages = [...allPages]; // Display all pages including those not in the current update
+  maxSteps = update.length;
+  positions = {};
+  update.forEach((page, index) => {
+    positions[page] = index;
+  });
+  updateCanvas();
+}
 
-  document.getElementById(
-    "result"
-  ).innerText = `The sum of the middle pages from correctly ordered updates is: ${result}`;
+function updateCanvas() {
+  createCanvas(1500, 800).parent("canvasContainer");
+  background(255);
+  fill(0);
+  textSize(24);
+  textAlign(CENTER, CENTER);
+  const gridSize = Math.ceil(Math.sqrt(pages.length));
+  const cellSize = width / gridSize;
+
+  pages.forEach((page, index) => {
+    const x = (index % gridSize) * cellSize + cellSize / 2;
+    const y = Math.floor(index / gridSize) * cellSize + cellSize / 2;
+    if (positions.hasOwnProperty(page)) {
+      fill(positions[page] === index ? "green" : "red");
+    } else {
+      fill("black"); // Pages not in the current update
+    }
+    text(page, x, y);
+  });
+}
+
+function draw() {
+  if (!sortingDone && validUpdates.length > 0) {
+    const update = validUpdates[updateIndex];
+    if (step < maxSteps - 1) {
+      if (positions[update[step]] > positions[update[step + 1]]) {
+        [positions[update[step]], positions[update[step + 1]]] = [
+          positions[update[step + 1]],
+          positions[update[step]],
+        ];
+        [update[step], update[step + 1]] = [update[step + 1], update[step]];
+      }
+      step++;
+      updateCanvas();
+    } else {
+      step = 0;
+      const middlePage = update[Math.floor(update.length / 2)];
+      middlePages.push(middlePage);
+      updateIndex++;
+      if (updateIndex >= validUpdates.length) {
+        sortingDone = true;
+        const sumOfMiddlePages = middlePages.reduce((acc, val) => acc + val, 0);
+        document.getElementById(
+          "result"
+        ).innerText = `Sorting completed. Sum of middle pages: ${sumOfMiddlePages}`;
+      } else {
+        setupCanvas(validUpdates[updateIndex]);
+      }
+    }
+  }
 }

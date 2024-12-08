@@ -4,15 +4,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page Order Validation</title>
+  <title>Page Order Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toposort/2.0.2/toposort.min.js"></script>
   <script defer src="part-01.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-      background-color: rgb(14, 0, 41);
-      color: rgb(255, 250, 237);
+      background-color: darkslategray;
+      color: whitesmoke;
     }
 
     input[type="file"] {
@@ -26,9 +27,10 @@
 </head>
 
 <body>
-  <h1>Page Order Validation</h1>
+  <h1>Page Order Visualization</h1>
   <input type="file" id="fileInput" />
   <div class="result" id="result"></div>
+  <div id="canvasContainer"></div>
 </body>
 
 </html>
